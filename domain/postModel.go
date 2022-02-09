@@ -1,19 +1,19 @@
 package domain
 
-import "database/sql"
+import (
+	"gorm.io/gorm"
+)
 
 type PostGorm struct {
-	PostId         string
+	gorm.Model
 	IsDraft        bool
 	DiscussionType string
 	Title          string
 	AuthorId       string
-	SubredditId    string
+	CategoryId     string
 	Content        string
 	IsNFS          bool
 	Media          string
-	CreatedAt      sql.NullTime
-	EditedAt       sql.NullTime
 }
 
 //Tabler and tableName are for rewriting default association of PostGorm struct with database table "post_gorms" to "posts"

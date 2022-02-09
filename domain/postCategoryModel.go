@@ -1,13 +1,15 @@
 package domain
 
+import "gorm.io/gorm"
+
 type PostCategoryGorm struct {
-	PostCategoryId string
-	styles         string
-	Name           string
-	Subscribers    int
-	Title          string
-	Type           string
-	Path           string
+	gorm.Model
+	styles      string
+	Name        string
+	Subscribers int
+	Title       string
+	Type        string
+	Path        string
 }
 
 //Id           int
