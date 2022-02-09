@@ -11,7 +11,7 @@ func routes() *gin.Engine {
 	r.Use(gin.Recovery())
 	apiv1 := r.Group("/api/v1")
 	apiv1.GET("/posts", v1.PostH)
-	apiv1.GET("/comments", v1.PostCommentH)
+	apiv1.GET("/:categoryName/comments/:userId/:postSlug", v1.PostCommentH)
 
 	return r
 }
