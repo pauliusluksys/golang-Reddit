@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/pauliusluksys/golang-Reddit/domain"
 	"github.com/pauliusluksys/golang-Reddit/migrations"
 	"log"
 )
@@ -11,6 +12,7 @@ func Start() {
 	if err != nil {
 		log.Fatalf("Some error occured. Err: %s", err)
 	}
+	domain.PostGorm{}.TableName()
 	migrations.PostMigration()
 	//r := routes()
 

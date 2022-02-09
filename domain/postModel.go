@@ -4,8 +4,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type Post struct {
+type PostGorm struct {
 	gorm.Model
-	Code  string
-	Price uint
+}
+
+//Tabler and tableName are for rewriting default association of PostGorm struct with database table "post_gorms" to "posts"
+type Tabler interface {
+	TableName() string
+}
+
+func (PostGorm) TableName() string {
+	return "posts"
 }

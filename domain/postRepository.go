@@ -1,8 +1,8 @@
 package domain
 
-func GetAllPosts() []Post {
+func GetAllPosts() []PostGorm {
 	db := GormDbConnections()
-	var posts []Post
+	var posts []PostGorm
 	db.Find(&posts)
 	return posts
 }
