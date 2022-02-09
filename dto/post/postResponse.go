@@ -3,10 +3,10 @@ package post
 import "time"
 
 type PostResponse struct {
+	Id                   string
+	EditedAt             time.Time
 	CreatedAt            time.Time
 	DiscussionType       string
-	EditedAt             time.Time
-	Id                   string
 	IsArchived           string
 	IsHidden             bool
 	IsSaved              bool

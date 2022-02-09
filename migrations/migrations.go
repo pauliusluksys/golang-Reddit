@@ -7,7 +7,7 @@ import (
 
 func PostMigration() {
 	db := domain.GormDbConnections()
-	err := db.AutoMigrate(&domain.PostGorm{})
+	err := db.AutoMigrate(&domain.PostGorm{}, &domain.PostCategoryGorm{}, &domain.UserGorm{})
 	if err != nil {
 		fmt.Println("Error while trying to migrate posts: " + err.Error())
 	}
