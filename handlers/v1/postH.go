@@ -11,10 +11,9 @@ func PostH(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"all posts": allPosts})
 
 }
-func PostCommentH(c *gin.Context) {
-	//if err != nil {
-	//	c.JSON(http., gin.H{"user": user, "value": value})
-	//} else {
-	//	c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
-	//}
-}
+
+//func PostCommentH(c *gin.Context) {
+//	postSlug := c.Param("postSlug")
+//	PostComments := services.GetPostComments(postSlug)
+//	c.JSON(http.StatusOK, gin.H{"post_comments": allPosts})
+//}
