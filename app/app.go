@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	handlersmicroservices "github.com/pauliusluksys/golang-Reddit/handlers/microservices"
+	v1 "github.com/pauliusluksys/golang-Reddit/handlers/v1"
+	"github.com/pauliusluksys/golang-Reddit/utils"
 	"log"
 	"net/http"
 	"os"
@@ -117,7 +119,11 @@ func SendMessage(msg string) {
 }
 func Start() {
 	router := mux.NewRouter()
+	router.HandleFunc("/api/auth/login", getTokenUserPassword).Methods("POST")
+	router.HandleFunc("/api/auth/create-user", createUser).Methods("POST")
+	router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
 	router.HandleFunc("/socket", WsEndpoint)
+
 	log.Fatal(http.ListenAndServe(":9100", router))
 
 }

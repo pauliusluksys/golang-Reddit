@@ -9,7 +9,6 @@ import (
 func PostH(c *gin.Context) {
 	allPosts := services.GetAllPosts()
 	c.JSON(http.StatusOK, gin.H{"all posts": allPosts})
-
 }
 
 //func PostCommentH(c *gin.Context) {
