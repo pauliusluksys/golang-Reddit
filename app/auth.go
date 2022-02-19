@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/pauliusluksys/golang-Reddit/utils"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
