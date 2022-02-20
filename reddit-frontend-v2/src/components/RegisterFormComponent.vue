@@ -7,9 +7,21 @@
       <div class="flex justify-center my-6">
         <div
             class="px-4"
-            :class="{ 'hasError': $v.form.name.$error }">
+            :class="{ 'hasError': $v.form.firstName.$error }">
+          <label class="mr-2 font-bold text-grey">First Name</label>
+          <input type="text" class="input" v-model="form.firstName">
+        </div>
+        <div
+            class="px-4"
+            :class="{ 'hasError': $v.form.lastName.$error }">
+          <label class="mr-2 font-bold text-grey">Last Name</label>
+          <input type="text" class="input" v-model="form.lastName">
+        </div>
+        <div
+            class="px-4"
+            :class="{ 'hasError': $v.form.username.$error }">
           <label class="mr-2 font-bold text-grey">Name</label>
-          <input type="text" class="input" v-model="form.name">
+          <input type="text" class="input" v-model="form.username">
         </div>
         <div
             class="px-4"
@@ -28,15 +40,17 @@
 </template>
 
 <script>
-import { required, email, minLength } from "vuelidate/lib/validators";
+import { required, email, minLength,alpha } from '@vuelidate/validators'
 
 export default {
-  name: "FormComponent",
+  name: "LoginFormComponent",
 
   data() {
     return {
       form: {
-        name: "",
+        firstName:"",
+        lastName:"",
+        username: "",
         email: ""
       }
     };
@@ -44,7 +58,9 @@ export default {
 
   validations: {
     form: {
-      name: { required, min: minLength(10) },
+      firstName: { required, min: minLength(3), alpha},
+      lastName: {required, min: minLength(3),alpha},
+      username: { required, min: minLength(10) },
       email: { required, email }
     }
   },

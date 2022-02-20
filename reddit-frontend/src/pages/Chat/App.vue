@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import FormComponent from "./../../components/FormComponent.vue";
+import FormComponent from "../../components/LoginFormComponent.vue";
 
 export default {
   name: "App",
