@@ -8,7 +8,7 @@
            alt="Sample image">
     </div>
     <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-      <form>
+      <form autocomplete="off">
         <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">
           <p class="lead fw-normal mb-0 me-3">Sign in with</p>
           <button type="button" class="btn btn-primary btn-floating mx-1">
@@ -30,16 +30,20 @@
         <div style="width: 70%; margin: 0 auto;" class="" >
           <div class="">
         <!-- Email input -->
-        <div class="form-outline mb-4">
-          <input type="email" id="form3Example3" class="form-control form-control-lg"
-                 placeholder="Enter a valid email address" />
+        <div class="form-outline mb-4 ">
+          <input type="text" id="form3Example3" class="form-control form-control-lg"
+                  autocomplete="off" />
           <label class="form-label d-flex justify-content-center" for="form3Example3">Email address</label>
         </div>
 
         <!-- Password input -->
         <div class="form-outline mb-3">
-          <input type="password" id="form3Example4" class="form-control form-control-lg"
-                 placeholder="Enter password" />
+          <input :type="fieldTypes.password" id="form3Example4" class="form-control form-control-lg"
+
+                 value=""
+                 @focus="handleType"
+                 @blur="handleType"
+                 autocomplete="off"/>
           <label class="form-label d-flex justify-content-center" for="form3Example4">Password</label>
         </div>
         </div>
@@ -113,11 +117,11 @@
                   <div class="card rounded-3">
                     <div class="card-body p-2 p-md-2">
 
-                      <form class="px-md-2">
+                      <form class="px-md-2"  autocomplete="off">
 
                         <div class="form-outline mb-2">
                           <label class="form-label" for="email">Email</label>
-                          <input type="text" id="email" class="form-control" v-model="state.email" />
+                          <input type="text" id="email" class="form-control" v-model="state.email" autocomplete="false"/>
                           <span v-if="v$.email.$error">
                               {{ v$.email.$errors[0].$message }}
                           </span>
@@ -125,7 +129,7 @@
                         </div>
                         <div class="form-outline mb-2">
                           <label class="form-label" for="password" >Password</label>
-                          <input type="text" id="password" class="form-control" v-model="state.password.password" />
+                          <input type="password" id="password" class="form-control" v-model="state.password.password" autocomplete="new-password"/>
                           <span v-if="v$.password.password.$error">
                               {{ v$.password.password.$errors[0].$message }}
                           </span>
@@ -172,6 +176,13 @@ import useValidate from "@vuelidate/core";
 import { required,email,minLength,sameAs } from "@vuelidate/validators";
 import { reactive, computed } from "vue";
 export default {
+  data() {
+    return {
+      fieldTypes: {
+        password: 'text',
+      }
+    }
+  },
   setup() {
     // const mustBeLearnVue = (value) => value.includes("learnvue");
     const state = reactive({
@@ -198,6 +209,16 @@ export default {
     return {state, v$}
   },
   methods: {
+    handleType(event) {
+      const { srcElement, type } = event;
+      const { name, value } = srcElement;
+
+      if(type === 'blur' && !value) {
+        this.fieldTypes[name] = 'text'
+      } else {
+        this.fieldTypes[name] = 'password'
+      }
+    },
     submitForm() {
       // this.v$.$validate()
       // if (!this.v$.$error) { // if ANY fail validation
