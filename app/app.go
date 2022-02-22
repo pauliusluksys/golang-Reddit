@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 	handlersmicroservices "github.com/pauliusluksys/golang-Reddit/handlers/microservices"
-	v1 "github.com/pauliusluksys/golang-Reddit/handlers/v1"
-	"github.com/pauliusluksys/golang-Reddit/utils"
+	userHandler "github.com/pauliusluksys/golang-Reddit/handlers/user"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -118,12 +120,27 @@ func SendMessage(msg string) {
 	}
 }
 func Start() {
+	gormDb := GormDbConnections()
 	router := mux.NewRouter()
-	router.HandleFunc("/api/auth/login", getTokenUserPassword).Methods("POST")
-	router.HandleFunc("/api/auth/create-user", createUser).Methods("POST")
-	router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
-	router.HandleFunc("/socket", WsEndpoint)
+	router.HandleFunc("/api/auth/login", userHandler.UserLogin(gormDb)).Methods("POST")
+	router.HandleFunc("/api/auth/signup", userHandler.UserSignup(gormDb)).Methods("POST")
 
+	//router.HandleFunc("/api/auth/create-user", ).Methods("POST")
+	//router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
+	//router.HandleFunc("/socket", WsEndpoint)
 	log.Fatal(http.ListenAndServe(":9100", router))
 
+}
+func GormDbConnections() *gorm.DB {
+	//dbSqlx := domain.SqlxDbConnections()
+	//seeds.Execute(dbSqlx, "UserSeed")
+	var myEnv map[string]string
+	myEnv, err := godotenv.Read()
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", myEnv["DB_USER"], myEnv["DB_PASSWORD"], myEnv["DB_ADDR"], myEnv["DB_PORT"], myEnv["DB_NAME"])
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	return db
 }

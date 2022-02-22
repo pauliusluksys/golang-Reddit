@@ -19,7 +19,7 @@ func (s Seed) UserSeed() {
 		stmt, _ := s.db.Prepare(`INSERT INTO users(first_name,last_name,email,password,created_at) VALUES (?,?,?,?,?)`)
 		// execute query
 
-		_, err := stmt.Exec(faker.FirstName(), faker.LastName, faker.Email(), string(hash), faker.Date())
+		_, err := stmt.Exec(faker.FirstName(), faker.LastName(), faker.Email(), string(hash), faker.Date())
 		if err != nil {
 			panic(err)
 		}
