@@ -2,6 +2,7 @@ package userHandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pauliusluksys/golang-Reddit/domain"
 	dtoUser "github.com/pauliusluksys/golang-Reddit/dto/user"
 	"github.com/pauliusluksys/golang-Reddit/utils"
@@ -60,7 +61,8 @@ func UserLogin(db *gorm.DB) http.HandlerFunc {
 			errors.ApiError(w, http.StatusInternalServerError, "Failed To Generate New JWT Token!")
 			return
 		}
-
+		fmt.Println(token)
+		//w.Header().Set("Authorization", "Bearer "+token)
 		utils.RespondWithJSON(w, LoginResponseOutput{
 			Token: token,
 			User:  loginResponse,
@@ -68,6 +70,7 @@ func UserLogin(db *gorm.DB) http.HandlerFunc {
 
 	}
 }
+
 func UserSignup(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		signupRequest := dtoUser.SignupRequest{}

@@ -5,7 +5,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/joho/godotenv"
 	"log"
-	"os"
 	"time"
 )
 
@@ -14,9 +13,7 @@ type Payload struct {
 }
 
 type Claims struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Id       uint   `json:"id"`
+	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
 
@@ -51,7 +48,9 @@ func GenerateJwtToken(payload Payload) (string, error) {
 }
 
 func VerifyJwtToken(strToken string) (*Claims, error) {
-	if JWT_SECRET = os.Getenv("JWT_SECRET"); JWT_SECRET == "" {
+	var myEnv map[string]string
+	myEnv, err := godotenv.Read()
+	if JWT_SECRET = myEnv["JWT_SECRET"]; JWT_SECRET == "" {
 		log.Fatal("[ ERROR ] JWT_SECRET environment variable not provided!\n")
 	}
 

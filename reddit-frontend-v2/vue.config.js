@@ -1,5 +1,8 @@
 const webpack = require("webpack");
 module.exports = {
+  devServer:{
+    proxy: 'http://localhost:9100/',
+  },
   pages: {
     // 'about': {
     //   entry: 'src/pages/About/main.js',
@@ -7,12 +10,18 @@ module.exports = {
     //   title: 'about page',
     //   chunks: ['chunk-vendors', 'chunk-common', 'about']
     // },
-    // 'chat': {
-    //   entry: 'src/pages/Chat/main.js',
-    //   template: 'public/index.html',
-    //   title: 'chat page',
-    //   chunks: ['chunk-vendors', 'chunk-common', 'chat']
-    // },
+    'user':{
+      entry: 'src/pages/User/main.js',
+      template: 'public/index.html',
+      title: 'user main page',
+      chunks: ['chunk-vendors', 'chunk-common', 'user']
+    },
+    'posts': {
+      entry: 'src/pages/Posts/main.js',
+      template: 'public/index.html',
+      title: 'posts page',
+      chunks: ['chunk-vendors', 'chunk-common', 'posts']
+    },
     'login-register': {
       entry: 'src/pages/LoginRegister/main.js',
       template: 'public/index.html',

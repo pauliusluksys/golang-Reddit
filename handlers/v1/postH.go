@@ -1,14 +1,18 @@
 package v1
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"github.com/pauliusluksys/golang-Reddit/services"
+	"github.com/pauliusluksys/golang-Reddit/utils"
 	"net/http"
 )
 
-func PostH(c *gin.Context) {
+func PostH(w http.ResponseWriter, r *http.Request) {
+	ctxVal := r.Context()
+	user := ctxVal.Value("user_email")
+	fmt.Println(user)
 	allPosts := services.GetAllPosts()
-	c.JSON(http.StatusOK, gin.H{"all posts": allPosts})
+	utils.RespondWithJSON(w, allPosts)
 }
 
 //func PostCommentH(c *gin.Context) {
