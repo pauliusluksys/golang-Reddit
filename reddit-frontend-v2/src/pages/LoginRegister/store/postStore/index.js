@@ -2,6 +2,33 @@ export default {
     namespaced: true,
     state: {
         posts: [
+            {
+                id: 1,
+                user: "idalmasso",
+                date: "2021-01-19 15:30:30",
+                post:
+                    "Today I'm feeling sooooo well...",
+                comments: [
+                    {
+                        id: 3,
+                        user: "Nostradamus",
+                        date: "2021-01-20 20:30:34",
+                        post: "LOL"
+                    },
+                    {
+                        id: 4,
+                        user: "FinnishMan",
+                        date: "2021-01-20 20:30:34",
+                        post: "Please..."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                user: "cshannon",
+                date: "2021-01-19 15:25:20",
+                post: "Say something here"
+            }
         ]
     },
 
@@ -26,26 +53,21 @@ export default {
 
 
         async getAllPosts(context) {
-            // console.log("works until here")
-            // console.log((localStorage.getItem('JWT')))
-            let token = "Bearer " + localStorage.getItem('JWT')
-            console.log(token)
             fetch("http://localhost:9100/api/auth/posts", {
                 method: "GET",
                 headers: {
-                    Authorization: token
+                    Authorization: context.rootGetters["auth/getTokenHeader"]
                 },
             }).then(response => {
+                return response.json();
                     if (response.ok) {
-                        // console.log(response.json());
                         return response.json();
-
                     } else {
                         throw Error(response.body);
                     }
                 })
                 .then(data => {
-                    console.log("data");
+                    console.log(data);
                     context.commit("SET_ALL_POSTS", data);
                 })
                 .catch(error => {
@@ -60,9 +82,5 @@ export default {
         userPosts: state => user => {
             return state.posts.filter(post => post.user === user);
         },
-        getTokenHeader() {
-            console.log(localStorage.getItem('JWT'))
-            return "Bearer " + localStorage.getItem('JWT');
-        }
     }
 };

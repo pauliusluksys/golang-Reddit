@@ -1,6 +1,8 @@
 package dtopost
 
-import "time"
+import (
+	"time"
+)
 
 type PostResponse struct {
 	Id                   string

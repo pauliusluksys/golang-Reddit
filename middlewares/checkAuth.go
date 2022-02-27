@@ -36,7 +36,6 @@ func CheckAuth(next http.HandlerFunc) http.HandlerFunc {
 		}
 		ctx := context.WithValue(r.Context(), "user_email", claims.Email)
 		next.ServeHTTP(w, r.WithContext(ctx))
-		next.ServeHTTP(w, r)
 	})
 }
 

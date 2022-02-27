@@ -32,7 +32,7 @@
         <!-- Email input -->
         <div class="form-outline mb-4 ">
           <input type="text" id="form3Example3" class="form-control form-control-lg"
-                  autocomplete="off" />
+                  autocomplete="off"  v-model="loginEmail" />
           <label class="form-label d-flex justify-content-center" for="form3Example3">Email address</label>
         </div>
 
@@ -43,7 +43,7 @@
                  value=""
                  @focus="handleType"
                  @blur="handleType"
-                 autocomplete="off"/>
+                 autocomplete="off" v-model="loginPassword" />
           <label class="form-label d-flex justify-content-center" for="form3Example4">Password</label>
         </div>
         </div>
@@ -60,8 +60,8 @@
         </div>
         </div>
         <div class="text-center text-lg-start mt-4 pt-2 mb-2 d-flex justify-content-center">
-          <button type="button" class="btn btn-primary btn-lg"
-                  style="padding-left: 2.5rem; padding-right: 2.5rem;">Login</button>
+
+          <button @click.prevent="loginButtonClicked" class="btn btn-primary btn-lg">Login</button>
         </div>
 
 
@@ -172,6 +172,7 @@
 <script>
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
+import {mapActions} from "vuex";
 import useValidate from "@vuelidate/core";
 import { required,email,minLength,sameAs } from "@vuelidate/validators";
 import { reactive, computed } from "vue";
@@ -180,6 +181,8 @@ export default {
     return {
       fieldTypes: {
         password: 'text',
+        loginEmail: "",
+        loginPassword: "",
       }
     }
   },
@@ -209,6 +212,25 @@ export default {
     return {state, v$}
   },
   methods: {
+    ...mapActions({ login: "auth/login"}),
+    loginButtonClicked() {
+        this.login({ email: "hWaPtJj@pQUGvbv.info", password: "password" })
+            .then(() => {
+              if (localStorage.getItem('JWT')) {
+                console.log((localStorage.getItem('JWT')));
+              }
+              console.log("it works")
+              // }
+              window.location.href = 'http://localhost:8080/posts';
+            })
+            .catch(error => {
+              this.error = error;
+              console.log(error)
+            });
+
+    }
+    },
+
     handleType(event) {
       const { srcElement, type } = event;
       const { name, value } = srcElement;
@@ -236,7 +258,6 @@ export default {
       }
 
     }
-  }
 };
 
 

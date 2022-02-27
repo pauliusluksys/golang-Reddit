@@ -7,11 +7,18 @@ import (
 	"net/http"
 )
 
-func PostH(w http.ResponseWriter, r *http.Request) {
+func AllPostsH(w http.ResponseWriter, r *http.Request) {
 	ctxVal := r.Context()
 	user := ctxVal.Value("user_email")
 	fmt.Println(user)
 	allPosts := services.GetAllPosts()
+	utils.RespondWithJSON(w, allPosts)
+}
+func PostH(w http.ResponseWriter, r *http.Request) {
+	ctxVal := r.Context()
+	user := ctxVal.Value("user_email")
+	fmt.Println(user)
+	allPosts := services.GetPost()
 	utils.RespondWithJSON(w, allPosts)
 }
 

@@ -9,6 +9,7 @@ import (
 	handlersmicroservices "github.com/pauliusluksys/golang-Reddit/handlers/microservices"
 	userHandler "github.com/pauliusluksys/golang-Reddit/handlers/user"
 	v1 "github.com/pauliusluksys/golang-Reddit/handlers/v1"
+	"github.com/pauliusluksys/golang-Reddit/middlewares"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -126,20 +127,25 @@ func Start() {
 	router.HandleFunc("/api/auth/login", userHandler.UserLogin(gormDb)).Methods("POST")
 	router.HandleFunc("/api/auth/signup", userHandler.UserSignup(gormDb)).Methods("POST")
 	//router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.PostH)).Methods("GET")
-	router.HandleFunc("/api/auth/posts", v1.PostH).Methods("GET")
+	router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.AllPostsH)).Methods("GET")
+	router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.PostH)).Methods("GET")
 	//router.HandleFunc("/api/auth/create-user", ).Methods("POST")
 	//router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
 	//router.HandleFunc("/socket", WsEndpoint)
-	log.Fatal(http.ListenAndServe(":9100", router))
+	log.Fatal(http.ListenAndServe(":9100", setHeaders(router)))
 
 }
 func setHeaders(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//fmt.Println(r.Body)
-
+		fmt.Printf("reaches this point")
 		for k, v := range r.Header {
-			fmt.Fprintf(w, "Header field %q, Value %q\n", k, v)
+			val, err := fmt.Printf("Header field %q, Value %s\n", k, v[0])
+			if err != nil {
+				fmt.Printf(err.Error())
+			}
+			fmt.Println(val)
 		}
+		fmt.Println(r.Method)
 		//anyone can make a CORS request (not recommended in production)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		//only allow GET, POST, and OPTIONS
@@ -147,7 +153,8 @@ func setHeaders(h http.Handler) http.Handler {
 		//Since I was building a REST API that returned JSON, I set the content type to JSON here.
 		w.Header().Set("Content-Type", "application/json")
 		//Allow requests to have the following headers
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization, cache-control")
+		w.Header().Set("Access-Control-Allow-Headers", "Sec-Fetch-Dest, Cache-Control, Access-Control-Request-Method, Pragma, Access-Control-Request-Headers, Origin, Sec-Fetch-Site, Connection, Sec-Fetch-Mode, Referer, Accept-Language, Accept,Accept-Encoding, authorization")
+
 		//if it's just an OPTIONS request, nothing other than the headers in the response is needed.
 		//This is essential because you don't need to handle the OPTIONS requests in your handlers now
 		if r.Method == "OPTIONS" {

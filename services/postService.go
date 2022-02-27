@@ -5,9 +5,15 @@ import (
 	dtopost "github.com/pauliusluksys/golang-Reddit/dto/post"
 )
 
-func GetAllPosts() []domain.PostGorm {
+func GetAllPosts() domain.PostsResponse {
 	allPosts := domain.GetAllPosts()
-	return allPosts
+	postsResponse := domain.PostsResponse{Posts: allPosts}
+	return postsResponse
+}
+func GetPost() domain.PostResponse {
+	allPosts := domain.GetAllPosts()
+	postsResponse := domain.PostsResponse{Posts: allPosts}
+	return postsResponse
 }
 func GetPostComments(postSlug string) []dtopost.PostComment {
 	return []dtopost.PostComment{}

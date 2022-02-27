@@ -8,7 +8,9 @@ library.add(fab);
 import { far } from '@fortawesome/free-regular-svg-icons';
 library.add(far);
 import { dom } from "@fortawesome/fontawesome-svg-core";
+import store from "@/store";
 dom.watch();
 const app = createApp(App);
+
 // import router from './router/router.js'
-app.mount("#app");
+app.use(store).mount("#app");
