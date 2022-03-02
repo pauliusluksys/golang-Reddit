@@ -1,8 +1,10 @@
 package services
 
 import (
+	"database/sql"
 	"github.com/pauliusluksys/golang-Reddit/domain"
 	dto "github.com/pauliusluksys/golang-Reddit/dto/post"
+	"time"
 )
 
 func GetAllPosts() domain.PostsResponse {
@@ -16,10 +18,25 @@ func GetPost(postId string) domain.Post {
 	return postsResponse
 }
 func GetPostComments(URLParams map[string]string) dto.PostCommentsResponse {
-	postCommentsDb := domain.GetPostComments(URLParams)
+	postComments := domain.GetPostComments(URLParams)
 	totalComments := domain.GetTotalComments(URLParams)
-	postCommentsStruct := dto.PostComments{postCommentsDb}
-
-	postCommentsResponse := postCommentsStruct.AllPostCommentsToDto(totalComments)
+	allPostComments := domain.PostComments{postComments}
+	postCommentsResponse := allPostComments.AllPostCommentsToDto(totalComments)
 	return postCommentsResponse
+}
+func NewPostComment(newPostCommentReq dto.NewPostCommentRequest) dto.NewPostCommentResponse {
+	newPostComment := domain.PostComment{
+		PostId:    newPostCommentReq.PostId,
+		AuthorId:  newPostCommentReq.AuthorId,
+		Content:   newPostCommentReq.Content,
+		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	}
+	if newPostCommentReq.ParentId == 0 {
+		newPostComment.ParentId = sql.NullInt64{Valid: false}
+	} else {
+		newPostComment.ParentId = sql.NullInt64{Int64: newPostCommentReq.ParentId, Valid: true}
+	}
+	newPostComment = domain.NewPostComment(newPostComment)
+	postCommentResponse := newPostComment.NewPostCommentToDto()
+	return postCommentResponse
 }

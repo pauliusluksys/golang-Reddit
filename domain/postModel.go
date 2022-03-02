@@ -2,7 +2,9 @@ package domain
 
 import (
 	"database/sql"
+	dto "github.com/pauliusluksys/golang-Reddit/dto/post"
 	"gorm.io/gorm"
+	"time"
 )
 
 type PostGorm struct {
@@ -38,9 +40,9 @@ type Post struct {
 type PostComment struct {
 	ID        uint          `db:"post_comments_id"`
 	PostId    uint          `db:"post_id"`
-	AuthorId  uint          `db:"user_id"`
+	AuthorId  uint          `db:"author_id"`
 	ParentId  sql.NullInt64 `db:"parent_id"`
-	Text      string        `db:"content"`
+	Content   string        `db:"content"`
 	CreatedAt sql.NullTime  `db:"created_at"`
 	UpdatedAt sql.NullTime  `db:"updated_at"`
 	DeletedAt sql.NullTime  `db:"deleted_at"`
@@ -55,6 +57,59 @@ type PostRequest struct {
 	Text     string `json:"text"`
 }
 type PostResponse struct {
+}
+
+func (PostComment PostComment) NewPostCommentToDto() dto.NewPostCommentResponse {
+	return dto.NewPostCommentResponse{
+		ID:        PostComment.ID,
+		PostId:    PostComment.PostId,
+		AuthorId:  PostComment.AuthorId,
+		ParentId:  PostComment.ParentId.Int64,
+		Content:   PostComment.Content,
+		CreatedAt: PostComment.CreatedAt.Time,
+	}
+}
+
+func (pc PostComments) AllPostCommentsToDto(totalComments int) dto.PostCommentsResponse {
+	pCR := dto.PostCommentsResponse{}
+	pCR.TotalComments = totalComments
+	for _, v := range pc.Comments {
+		postComment := v.PostCommentToDto()
+		pCR.PostComments = append(pCR.PostComments, postComment)
+	}
+	return pCR
+}
+func (pc PostComment) PostCommentToDto() dto.PostCommentResponse {
+	//ID        uint          `db:"post_comments_id"`
+	//PostId    uint          `db:"post_id"`
+	//AuthorId  uint          `db:"user_id"`
+	//ParentId  sql.NullInt64 `db:"parent_id"`
+	//Text      string        `db:"content"`
+	//CreatedAt sql.NullTime  `db:"created_at"`
+	//UpdatedAt sql.NullTime  `db:"updated_at"`
+	//DeletedAt sql.NullTime  `db:"deleted_at"`
+	var commentUpdatedAt *time.Time
+	var commentDeletedAt *time.Time
+	var ParentId int64
+	if pc.UpdatedAt.Valid {
+		commentUpdatedAt = &pc.UpdatedAt.Time
+	}
+	if pc.DeletedAt.Valid {
+		commentDeletedAt = &pc.DeletedAt.Time
+	}
+	if pc.ParentId.Valid {
+		ParentId = pc.ParentId.Int64
+	}
+	return dto.PostCommentResponse{
+		ID:        pc.ID,
+		PostId:    pc.PostId,
+		AuthorId:  pc.AuthorId,
+		ParentId:  ParentId,
+		Content:   pc.Content,
+		CreatedAt: pc.CreatedAt.Time,
+		UpdatedAt: commentUpdatedAt,
+		DeletedAt: commentDeletedAt,
+	}
 }
 
 //Tabler and tableName are for rewriting default association of PostGorm struct with database table "post_gorms" to "posts"

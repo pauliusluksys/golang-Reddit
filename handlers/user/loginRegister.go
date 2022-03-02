@@ -27,7 +27,7 @@ func UserLogin(db *gorm.DB) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
 		if err != nil {
-			return
+			fmt.Println("error:" + err.Error())
 		}
 		if len(loginRequest.Email) < 3 {
 			errors.ApiError(w, http.StatusBadRequest, "Invalid Email!")

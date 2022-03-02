@@ -132,6 +132,7 @@ func Start() {
 	router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.AllPostsH)).Methods("GET")
 	router.HandleFunc("/api/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
 	router.HandleFunc("/api/post/comments", v1.PostComments).Methods("GET")
+	router.HandleFunc("/api/post/comments/store", v1.PostCommentsStore).Methods("POST")
 	//router.HandleFunc("/api/auth/create-user", ).Methods("POST")
 	//router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
 	//router.HandleFunc("/socket", WsEndpoint)

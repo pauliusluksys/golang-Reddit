@@ -1,10 +1,36 @@
 package domain
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 )
 
+func NewPostComment(newPostComment PostComment) PostComment {
+	//query := `INSERT INTO post_comments (post_id,author_id,parent_id,content,created_at) VALUES (:postId,:AuthorId,:ParentId.Int64,:Text)`
+	tx := SqlxDbConnections().MustBegin()
+	var result sql.Result
+	if newPostComment.ParentId.Valid {
+		result = tx.MustExec("INSERT INTO post_comments (post_id,author_id,parent_id,content,created_at) VALUES (?,?,?,?,?)", newPostComment.PostId, newPostComment.AuthorId, newPostComment.ParentId, newPostComment.Content, newPostComment.CreatedAt.Time)
+	} else {
+		result = tx.MustExec("INSERT INTO post_comments (post_id,author_id,content,created_at) VALUES (?,?,?,?)", newPostComment.PostId, newPostComment.AuthorId, newPostComment.Content, newPostComment.CreatedAt.Time)
+	}
+	err := tx.Commit()
+	if err != nil {
+		fmt.Println("err: ", err.Error())
+	}
+	//_, err := SqlxDbConnections().NamedExec(query, &newPostComment)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//}
+	postCommentId, err := result.LastInsertId()
+	var insertedPostcomment PostComment
+	err = SqlxDbConnections().Get(&insertedPostcomment, "SELECT * FROM post_comments WHERE post_comments_id=?", postCommentId)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return insertedPostcomment
+}
 func GetTotalComments(URLParams map[string]string) int {
 	var postCommentsCount []int
 	postIdInt, err := strconv.Atoi(URLParams["postId"])
