@@ -15,11 +15,10 @@ func AllPostsH(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, allPosts)
 }
 func PostH(w http.ResponseWriter, r *http.Request) {
-	ctxVal := r.Context()
-	user := ctxVal.Value("user_email")
-	fmt.Println(user)
-	allPosts := services.GetPost()
-	utils.RespondWithJSON(w, allPosts)
+	query := r.URL.Query()
+	postId := query.Get("post_id")
+	postById := services.GetPost(postId)
+	utils.RespondWithJSON(w, postById)
 }
 
 //func PostCommentH(c *gin.Context) {

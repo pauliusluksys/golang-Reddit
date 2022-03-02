@@ -122,13 +122,16 @@ func SendMessage(msg string) {
 	}
 }
 func Start() {
+	//migrations.PostCommentMigration()
+	//seeds.Execute(domain.SqlxDbConnections(), "PostCommentsSeed")
 	gormDb := GormDbConnections()
 	router := mux.NewRouter()
 	router.HandleFunc("/api/auth/login", userHandler.UserLogin(gormDb)).Methods("POST")
 	router.HandleFunc("/api/auth/signup", userHandler.UserSignup(gormDb)).Methods("POST")
 	//router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.PostH)).Methods("GET")
 	router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.AllPostsH)).Methods("GET")
-	router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.PostH)).Methods("GET")
+	router.HandleFunc("/api/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
+	router.HandleFunc("/api/post/comments", v1.PostComments).Methods("GET")
 	//router.HandleFunc("/api/auth/create-user", ).Methods("POST")
 	//router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
 	//router.HandleFunc("/socket", WsEndpoint)
@@ -137,15 +140,12 @@ func Start() {
 }
 func setHeaders(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("reaches this point")
-		for k, v := range r.Header {
-			val, err := fmt.Printf("Header field %q, Value %s\n", k, v[0])
-			if err != nil {
-				fmt.Printf(err.Error())
-			}
-			fmt.Println(val)
-		}
-		fmt.Println(r.Method)
+		//for k, v := range r.Header {
+		//	_, err := fmt.Printf("Header field %q, Value %s\n", k, v[0])
+		//	if err != nil {
+		//		fmt.Printf(err.Error())
+		//	}
+		//}
 		//anyone can make a CORS request (not recommended in production)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		//only allow GET, POST, and OPTIONS

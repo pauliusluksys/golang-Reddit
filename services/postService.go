@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/pauliusluksys/golang-Reddit/domain"
-	dtopost "github.com/pauliusluksys/golang-Reddit/dto/post"
+	dto "github.com/pauliusluksys/golang-Reddit/dto/post"
 )
 
 func GetAllPosts() domain.PostsResponse {
@@ -10,11 +10,16 @@ func GetAllPosts() domain.PostsResponse {
 	postsResponse := domain.PostsResponse{Posts: allPosts}
 	return postsResponse
 }
-func GetPost() domain.PostResponse {
-	allPosts := domain.GetAllPosts()
-	postsResponse := domain.PostsResponse{Posts: allPosts}
+func GetPost(postId string) domain.Post {
+	postById := domain.GetPostById(postId)
+	postsResponse := postById
 	return postsResponse
 }
-func GetPostComments(postSlug string) []dtopost.PostComment {
-	return []dtopost.PostComment{}
+func GetPostComments(URLParams map[string]string) dto.PostCommentsResponse {
+	postCommentsDb := domain.GetPostComments(URLParams)
+	totalComments := domain.GetTotalComments(URLParams)
+	postCommentsStruct := dto.PostComments{postCommentsDb}
+
+	postCommentsResponse := postCommentsStruct.AllPostCommentsToDto(totalComments)
+	return postCommentsResponse
 }

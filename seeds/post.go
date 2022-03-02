@@ -14,9 +14,9 @@ type postCategoryIds struct {
 
 func (s Seed) PostSeed() {
 
-	postIds := []postCategoryIds{}
+	postCatIds := []postCategoryIds{}
 	userIds := []userIds{}
-	err := s.db.Select(&postIds, "SELECT id FROM categories")
+	err := s.db.Select(&postCatIds, "SELECT id FROM categories")
 	if err != nil {
 		panic("error in post seed while selecting post category: " + err.Error())
 	}
@@ -25,10 +25,10 @@ func (s Seed) PostSeed() {
 		panic("error in post seed while selecting user: " + err.Error())
 	}
 	userscount := len(userIds)
-	postCatCount := len(postIds)
+	postCatCount := len(postCatIds)
 	for i := 0; i < 100; i++ {
 		randomUserId := userIds[rand.Intn(userscount)].ID
-		randomPostCatId := postIds[rand.Intn(postCatCount)].ID
+		randomPostCatId := postCatIds[rand.Intn(postCatCount)].ID
 
 		//prepare the statement
 		stmt, _ := s.db.Prepare(`INSERT INTO posts(author_id,created_at,is_draft,discussion_type,title,category_id,content,is_nfs) VALUES (?,?,?,?,?,?,?,?)`)
