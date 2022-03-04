@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/joho/godotenv"
+	"github.com/pauliusluksys/golang-Reddit/domain"
 	handlersmicroservices "github.com/pauliusluksys/golang-Reddit/handlers/microservices"
 	userHandler "github.com/pauliusluksys/golang-Reddit/handlers/user"
 	v1 "github.com/pauliusluksys/golang-Reddit/handlers/v1"
 	"github.com/pauliusluksys/golang-Reddit/middlewares"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"github.com/pauliusluksys/golang-Reddit/utils"
+	"github.com/pauliusluksys/golang-Reddit/validation"
 	"log"
 	"net/http"
 	"os"
@@ -122,17 +122,51 @@ func SendMessage(msg string) {
 	}
 }
 func Start() {
+
+	//logger := utils.NewLogger()
+	//configs := utils.NewConfigurations(logger)
+	//validator := validation.NewValidation()
+	//gormDb, err := domain.GormDbConnections(configs, logger)
+	//mailService := servicesMail.NewSGMailService(logger, configs)
+	//uh := handlers.NewAuthHandler(logger, configs, validator, gormDb, authService, mailService)
 	//migrations.PostCommentMigration()
 	//seeds.Execute(domain.SqlxDbConnections(), "PostCommentsSeed")
-	gormDb := GormDbConnections()
+	logger := utils.NewLogger()
+	configs, err := utils.NewConfigurations(logger)
+	if err != nil {
+		panic(err.Message)
+	}
+	// validator contains all the methods that are need to validate the user json in request
+	validator := validation.NewValidation()
+
+	// create a new connection to the postgres db store
+	db, err := data.NewConnection(configs, logger)
+	if err != nil {
+		logger.Error("unable to connect to db", "error", err)
+		panic(err)
+	}
+
+	gormDb := domain.GormDbConnections()
 	router := mux.NewRouter()
-	router.HandleFunc("/api/auth/login", userHandler.UserLogin(gormDb)).Methods("POST")
-	router.HandleFunc("/api/auth/signup", userHandler.UserSignup(gormDb)).Methods("POST")
-	//router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.PostH)).Methods("GET")
-	router.HandleFunc("/api/auth/posts", middlewares.CheckAuth(v1.AllPostsH)).Methods("GET")
-	router.HandleFunc("/api/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
-	router.HandleFunc("/api/post/comments", v1.PostComments).Methods("GET")
-	router.HandleFunc("/api/post/comments/store", v1.PostCommentsStore).Methods("POST")
+	api := router.PathPrefix("/api").Subrouter()
+	auth := api.PathPrefix("/auth").Subrouter()
+	email := auth.PathPrefix("/email").Subrouter()
+	auth.HandleFunc("/login", userHandler.UserLogin(gormDb)).Methods("POST")
+	auth.HandleFunc("/signup", userHandler.UserSignup(gormDb)).Methods("POST")
+	auth.HandleFunc("/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
+	auth.HandleFunc("/posts", middlewares.CheckAuth(v1.AllPostsH)).Methods("GET")
+	auth.HandleFunc("/greet", middlewares.CheckAuth(v1.Greet)).Methods("GET")
+
+	api.HandleFunc("/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
+	api.HandleFunc("/post/comments", v1.PostComments).Methods("GET")
+	api.HandleFunc("/post/comments/store", v1.PostCommentsStore).Methods("POST")
+
+	email.HandleFunc("/verify", v1.VerifyEmail).Methods("POST")
+	//router.HandleFunc("/api/auth/verify-email", v1.VerifyEmail).Methods("POST")
+	//mailR := router.PathPrefix("/verify").Methods(http.MethodPost).Subrouter()
+	//mailR.HandleFunc("/mail", uh.VerifyMail)
+	//mailR.HandleFunc("/password-reset", uh.VerifyPasswordReset)
+	//mailR.Use(uh.MiddlewareValidateVerificationData)
 	//router.HandleFunc("/api/auth/create-user", ).Methods("POST")
 	//router.HandleFunc("api/something", utils.CheckTokenHandler(v1.GetSomething)).Methods("GET")
 	//router.HandleFunc("/socket", WsEndpoint)
@@ -164,17 +198,4 @@ func setHeaders(h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r)
 	})
-}
-func GormDbConnections() *gorm.DB {
-	//dbSqlx := domain.SqlxDbConnections()
-	//seeds.Execute(dbSqlx, "UserSeed")
-	var myEnv map[string]string
-	myEnv, err := godotenv.Read()
-
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", myEnv["DB_USER"], myEnv["DB_PASSWORD"], myEnv["DB_ADDR"], myEnv["DB_PORT"], myEnv["DB_NAME"])
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	return db
 }

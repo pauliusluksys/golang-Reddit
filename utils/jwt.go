@@ -64,9 +64,12 @@ func VerifyJwtToken(strToken string) (*Claims, error) {
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
 			return claims, fmt.Errorf("invalid token signature")
+		} else {
+			return nil, err
 		}
 	}
-
+	fmt.Println()
+	fmt.Println("token:          ", token)
 	if !token.Valid {
 		return claims, fmt.Errorf("invalid token")
 	}
