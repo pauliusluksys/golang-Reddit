@@ -1,52 +1,30 @@
 package middlewares
 
 import (
-	"fmt"
 	"github.com/hashicorp/go-hclog"
-	"github.com/pauliusluksys/golang-Reddit/domain"
+	"github.com/pauliusluksys/golang-Reddit/services"
 	"github.com/pauliusluksys/golang-Reddit/utils"
 	"golang.org/x/net/context"
 	"net/http"
-	"strings"
 )
 
-var errors = utils.CustomError{}
-
-type AuthService struct {
-	logger  hclog.Logger
-	configs *utils.Configurations
+type AuthMiddleware struct {
+	AuthService services.AuthService
+	Logger      hclog.Logger
 }
 
-// NewAuthService returns a new instance of the auth service
-func NewAuthService(logger hclog.Logger, configs *utils.Configurations) *AuthService {
-	return &AuthService{logger, configs}
+func NewAuthMiddleware(authService services.AuthService, logger hclog.Logger) AuthMiddleware {
+	return AuthMiddleware{AuthService: authService, Logger: logger}
 }
-func CheckAuth(next http.HandlerFunc) http.HandlerFunc {
-	//fmt.Println("wtf")
+func (s AuthMiddleware) CheckAuth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		db := domain.GormDbConnections()
+		s.Logger.Debug("logger is now fully functional horray!")
 		authHeader := r.Header.Get("Authorization")
-		bearerToken := strings.Split(authHeader, " ")
-		fmt.Println("bearer token:    ", bearerToken)
-		fmt.Println()
-		if len(bearerToken) < 2 {
-			errors.ApiError(w, http.StatusForbidden, "Token not provided!")
-			return
-		}
-
-		token := bearerToken[1]
-		fmt.Println(token)
-		claims, err := utils.VerifyJwtToken(token)
+		user, err := s.AuthService.CheckAuth(authHeader)
 		if err != nil {
-			errors.ApiError(w, http.StatusForbidden, err.Error())
-			return
+			utils.RespondWithJSON(w, err.Code, err.Message)
 		}
-		user := domain.UserGorm{}
-		if results := db.Where("email = ?", claims.Email).First(&user); results.Error != nil || results.RowsAffected < 1 {
-			http.Error(w, "Unauthorized, user not exists", http.StatusUnauthorized)
-			return
-		}
-		ctx := context.WithValue(r.Context(), "user_email", claims.Email)
+		ctx := context.WithValue(r.Context(), "user", user.FirstName+" "+user.LastName)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -1,10 +1,9 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/joho/godotenv"
-	"log"
+	"github.com/pauliusluksys/golang-Reddit/errs"
 	"time"
 )
 
@@ -19,11 +18,14 @@ type Claims struct {
 
 var JWT_SECRET string
 
-func GenerateJwtToken(payload Payload) (string, error) {
+func GenerateJwtToken(payload Payload) (*string, *errs.AppError) {
 	var myEnv map[string]string
 	myEnv, err := godotenv.Read()
+	if err != nil {
+		return nil, errs.NewUnexpectError("failed to read env file: " + err.Error())
+	}
 	if JWT_SECRET = myEnv["JWT_SECRET"]; JWT_SECRET == "" {
-		log.Fatal("[ ERROR ] JWT_SECRET environment variable not provided!\n")
+		return nil, errs.NewUnexpectError("[ ERROR ] JWT_SECRET environment variable not provided!\n")
 	}
 
 	key := []byte(JWT_SECRET)
@@ -41,17 +43,22 @@ func GenerateJwtToken(payload Payload) (string, error) {
 
 	SignedToken, err := UnsignedToken.SignedString(key)
 	if err != nil {
-		return "", err
+		return nil, errs.NewUnexpectError("error while trying to sign new token: " + err.Error())
+
 	}
 
-	return SignedToken, nil
+	return &SignedToken, nil
 }
 
-func VerifyJwtToken(strToken string) (*Claims, error) {
+func VerifyJwtToken(strToken string) (*Claims, *errs.AppError) {
 	var myEnv map[string]string
 	myEnv, err := godotenv.Read()
+	if err != nil {
+		return nil, errs.NewUnexpectError("failed to read env file: " + err.Error())
+	}
+
 	if JWT_SECRET = myEnv["JWT_SECRET"]; JWT_SECRET == "" {
-		log.Fatal("[ ERROR ] JWT_SECRET environment variable not provided!\n")
+		return nil, errs.NewUnexpectError("[ ERROR ] JWT_SECRET environment variable not provided!\n")
 	}
 
 	key := []byte(JWT_SECRET)
@@ -63,15 +70,15 @@ func VerifyJwtToken(strToken string) (*Claims, error) {
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return claims, fmt.Errorf("invalid token signature")
+
+			return claims, errs.NewForbiddenError("invalid token signature")
 		} else {
-			return nil, err
+			return nil, errs.NewUnexpectError(err.Error())
 		}
 	}
-	fmt.Println()
-	fmt.Println("token:          ", token)
+
 	if !token.Valid {
-		return claims, fmt.Errorf("invalid token")
+		return claims, errs.NewValidationError("invalid token")
 	}
 
 	return claims, nil

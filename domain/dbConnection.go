@@ -6,7 +6,6 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
 )
 
 func NewGormDbConnection() *gorm.DB {
@@ -27,7 +26,7 @@ func NewSqlxDbConnection() *sqlx.DB {
 
 	db, err := sqlx.Connect("mysql", dsn)
 	if err != nil {
-		log.Fatalln(err)
+		panic("failed to connect database")
 	}
 	return db
 

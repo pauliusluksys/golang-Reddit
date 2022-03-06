@@ -2,7 +2,9 @@ package domain
 
 import (
 	"database/sql"
+	"github.com/hashicorp/go-hclog"
 	dtoUser "github.com/pauliusluksys/golang-Reddit/dto/user"
+	"github.com/pauliusluksys/golang-Reddit/errs"
 	"gorm.io/gorm"
 	"time"
 )
@@ -31,11 +33,28 @@ type User struct {
 	Country        sql.NullString
 	City           sql.NullString
 }
+type UserGormRepo struct {
+	Client *gorm.DB
+	Logger hclog.Logger
+}
 
-func FindUser(email string) UserGorm {
+func NewUserGormRepoDb(gormDb *gorm.DB, logger hclog.Logger) UserGormRepo {
+	return UserGormRepo{Client: gormDb, Logger: logger}
+}
+func (ugdb UserGormRepo) FindUser(email string) (*UserGorm, *int64, *errs.AppError) {
 	var user UserGorm
-	GormDbConnections().Where("email = ?", email).First(&user)
-	return user
+	result := ugdb.Client.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return nil, nil, errs.NewUnexpectError("Gorm has failed while fetching user" + result.Error.Error())
+	}
+	return &user, &result.RowsAffected, nil
+}
+func (ugdb UserGormRepo) CreateUser(user UserGorm) (*UserGorm, *int64, *errs.AppError) {
+	result := ugdb.Client.Create(&user)
+	if result.Error != nil {
+		return nil, nil, errs.NewUnexpectError("Gorm has failed while fetching user" + result.Error.Error())
+	}
+	return &user, &result.RowsAffected, nil
 }
 
 type SignupRequest struct {
@@ -47,17 +66,20 @@ type SignupResponse struct {
 type LoginRequest struct {
 	Data dtoUser.LoginRequest
 }
-type LoginResponse struct {
-	Data dtoUser.LoginResponse
-}
 
-func (u UserGorm) LoginResponseToDto() dtoUser.LoginResponse {
+func (u UserGorm) LoginResponseToDto(token string) dtoUser.LoginResponse {
 
 	return dtoUser.LoginResponse{
-		Email:     u.Email,
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
+		User: dtoUser.UserResponse{
+			Email:     u.Email,
+			FirstName: u.FirstName,
+			LastName:  u.LastName,
+		},
+		Token: dtoUser.TokenResponse{
+			Token: token,
+		},
 	}
+
 }
 func (s LoginRequest) LoginToDomain() UserGorm {
 	sReqData := s.Data
@@ -67,12 +89,17 @@ func (s LoginRequest) LoginToDomain() UserGorm {
 		Password: sReqData.Password,
 	}
 }
-func (u UserGorm) SignupResponseToDto() dtoUser.SignupResponse {
+func (u UserGorm) SignupResponseToDto(token string) dtoUser.SignupResponse {
 
 	return dtoUser.SignupResponse{
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
-		Email:     u.Email,
+		UserResponse: dtoUser.UserResponse{
+			Email:     u.Email,
+			FirstName: u.FirstName,
+			LastName:  u.LastName,
+		},
+		TokenResponse: dtoUser.TokenResponse{
+			Token: token,
+		},
 	}
 }
 func (s SignupRequest) ToDomain() UserGorm {

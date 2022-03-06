@@ -20,22 +20,21 @@ type PostGorm struct {
 }
 
 type PostsResponse struct {
-	Posts []PostGorm `json:"post"`
+	Posts []Post `json:"post"`
 }
 type Post struct {
-	ID             uint         `db:"id"`
-	CreatedAt      sql.NullTime `db:"created_at"`
-	UpdatedAt      sql.NullTime `db:"updated_at"`
-	DeletedAt      sql.NullTime `db:"deleted_at"`
-	IsDraft        bool         `db:"is_draft"`
-	DiscussionType string       `db:"discussion_type"`
-	Title          string       `db:"title"`
-	AuthorId       string       `db:"author_id"`
-	CategoryId     string       `db:"category_id"`
-	Content        string       `db:"content"`
-	IsNFS          bool         `db:"is_nfs"`
-	Media          string       `db:"media"`
-	Comments       []PostComment
+	ID             uint           `db:"id"`
+	CreatedAt      sql.NullTime   `db:"created_at"`
+	UpdatedAt      sql.NullTime   `db:"updated_at"`
+	DeletedAt      sql.NullTime   `db:"deleted_at"`
+	IsDraft        bool           `db:"is_draft"`
+	DiscussionType string         `db:"discussion_type"`
+	Title          string         `db:"title"`
+	AuthorId       uint           `db:"author_id"`
+	CategoryId     uint           `db:"category_id"`
+	Content        string         `db:"content"`
+	IsNFS          bool           `db:"is_nfs"`
+	Media          sql.NullString `db:"media"`
 }
 type PostComment struct {
 	ID        uint          `db:"post_comments_id"`

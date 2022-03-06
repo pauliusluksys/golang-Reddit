@@ -1,4 +1,4 @@
-package v1
+package handlers
 
 import (
 	"github.com/pauliusluksys/golang-Reddit/utils"
@@ -10,8 +10,7 @@ func Greet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	userID := r.Context().Value("user_id").(string)
-	w.WriteHeader(http.StatusOK)
+	user := r.Context().Value("user").(string)
 	// w.Write([]byte("hello, " + userID))
-	utils.RespondWithJSON(w, "hello, "+userID)
+	utils.RespondWithJSON(w, http.StatusOK, "hello, "+user)
 }

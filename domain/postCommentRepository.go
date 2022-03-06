@@ -2,13 +2,24 @@ package domain
 
 import (
 	"database/sql"
-	"fmt"
+	"github.com/jmoiron/sqlx"
+	"gorm.io/gorm"
 	"strconv"
 )
 
-func NewPostComment(newPostComment PostComment) PostComment {
+type PostCommentGormRepo struct {
+	client *gorm.DB
+}
+type PostCommentSqlxRepo struct {
+	client *sqlx.DB
+}
+
+func NewPostCommentSqlxRepo(db *sqlx.DB) PostCommentSqlxRepo {
+	return PostCommentSqlxRepo{client: db}
+}
+func (pcsqlx PostSqlxRepo) NewPostComment(newPostComment PostComment) PostComment {
 	//query := `INSERT INTO post_comments (post_id,author_id,parent_id,content,created_at) VALUES (:postId,:AuthorId,:ParentId.Int64,:Text)`
-	tx := SqlxDbConnections().MustBegin()
+	tx := pcsqlx.client.MustBegin()
 	var result sql.Result
 	if newPostComment.ParentId.Valid {
 		result = tx.MustExec("INSERT INTO post_comments (post_id,author_id,parent_id,content,created_at) VALUES (?,?,?,?,?)", newPostComment.PostId, newPostComment.AuthorId, newPostComment.ParentId, newPostComment.Content, newPostComment.CreatedAt.Time)
@@ -17,7 +28,7 @@ func NewPostComment(newPostComment PostComment) PostComment {
 	}
 	err := tx.Commit()
 	if err != nil {
-		fmt.Println("err: ", err.Error())
+		pcsqlx.Logger.Debug("err: ", err.Error())
 	}
 	//_, err := SqlxDbConnections().NamedExec(query, &newPostComment)
 	//if err != nil {
@@ -25,31 +36,31 @@ func NewPostComment(newPostComment PostComment) PostComment {
 	//}
 	postCommentId, err := result.LastInsertId()
 	var insertedPostcomment PostComment
-	err = SqlxDbConnections().Get(&insertedPostcomment, "SELECT * FROM post_comments WHERE post_comments_id=?", postCommentId)
+	err = pcsqlx.client.Get(&insertedPostcomment, "SELECT * FROM post_comments WHERE post_comments_id=?", postCommentId)
 	if err != nil {
-		fmt.Println(err.Error())
+		pcsqlx.Logger.Debug(err.Error())
 	}
 	return insertedPostcomment
 }
-func GetTotalComments(URLParams map[string]string) int {
+func (pcsqlx PostSqlxRepo) GetTotalComments(URLParams map[string]string) int {
 	var postCommentsCount []int
 	postIdInt, err := strconv.Atoi(URLParams["postId"])
 	if err != nil {
-		fmt.Println(err.Error())
+		pcsqlx.Logger.Debug(err.Error())
 	}
 	query := `SELECT COUNT(post_comments_id) AS comments_count FROM post_comments where post_id = ?;`
 
-	err = SqlxDbConnections().Select(&postCommentsCount, query, postIdInt)
+	err = pcsqlx.client.Select(&postCommentsCount, query, postIdInt)
 	if err != nil {
-		fmt.Println("error while querying post comments: " + err.Error())
+		pcsqlx.Logger.Debug("error while querying post comments: " + err.Error())
 	}
 	return postCommentsCount[0]
 }
-func GetPostComments(URLParams map[string]string) []PostComment {
+func (pcsqlx PostSqlxRepo) GetPostComments(URLParams map[string]string) []PostComment {
 	postComments := []PostComment{}
 	postIdInt, err := strconv.Atoi(URLParams["postId"])
 	if err != nil {
-		fmt.Println(err.Error())
+		pcsqlx.Logger.Debug(err.Error())
 	}
 	var next int
 	queryOffset := 0
@@ -58,10 +69,10 @@ func GetPostComments(URLParams map[string]string) []PostComment {
 		queryOffset = next * 20
 	}
 	if err != nil {
-		fmt.Println(err.Error())
+		pcsqlx.Logger.Debug(err.Error())
 	}
 
-	query := `WITH RECURSIVE post_comments_path (post_comments_id,content, parent_id, post_id,user_id,created_at,updated_at,deleted_at ) AS
+	query := `WITH RECURSIVE post_comments_path (post_comments_id,content, parent_id, post_id,author_id,created_at,updated_at,deleted_at ) AS
 (
   SELECT post_comments_id,content, parent_id, post_id,author_id,created_at,updated_at,deleted_at 
     FROM post_comments
@@ -79,9 +90,9 @@ func GetPostComments(URLParams map[string]string) []PostComment {
 SELECT * FROM post_comments_path 
 ORDER BY parent_id,created_at DESC limit 100 offset ?;`
 
-	err = SqlxDbConnections().Select(&postComments, query, postIdInt, queryOffset)
+	err = pcsqlx.client.Select(&postComments, query, postIdInt, queryOffset)
 	if err != nil {
-		fmt.Println("error while querying post comments: " + err.Error())
+		pcsqlx.Logger.Debug("error while querying post comments: " + err.Error())
 	}
 	return postComments
 }

@@ -6,12 +6,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/pauliusluksys/golang-Reddit/domain"
+	"github.com/pauliusluksys/golang-Reddit/handlers"
 	handlersmicroservices "github.com/pauliusluksys/golang-Reddit/handlers/microservices"
-	userHandler "github.com/pauliusluksys/golang-Reddit/handlers/user"
-	v1 "github.com/pauliusluksys/golang-Reddit/handlers/v1"
+	"github.com/pauliusluksys/golang-Reddit/handlers/user"
 	"github.com/pauliusluksys/golang-Reddit/middlewares"
+	"github.com/pauliusluksys/golang-Reddit/services"
 	"github.com/pauliusluksys/golang-Reddit/utils"
-	"github.com/pauliusluksys/golang-Reddit/validation"
 	"log"
 	"net/http"
 	"os"
@@ -131,37 +131,43 @@ func Start() {
 	//uh := handlers.NewAuthHandler(logger, configs, validator, gormDb, authService, mailService)
 	//migrations.PostCommentMigration()
 	//seeds.Execute(domain.SqlxDbConnections(), "PostCommentsSeed")
-	logger := utils.NewLogger()
-	configs, err := utils.NewConfigurations(logger)
-	if err != nil {
-		panic(err.Message)
-	}
+
+	//configs, err := utils.NewConfigurations(logger)
+	//if err != nil {
+	//	panic(err.Message)
+	//}
 	// validator contains all the methods that are need to validate the user json in request
-	validator := validation.NewValidation()
+	//validator := validation.NewValidation()
 
-	// create a new connection to the postgres db store
-	db, err := data.NewConnection(configs, logger)
-	if err != nil {
-		logger.Error("unable to connect to db", "error", err)
-		panic(err)
-	}
+	logger := utils.NewLogger()
+	gormDb := domain.NewGormDbConnection()
+	sqlxDb := domain.NewSqlxDbConnection()
 
-	gormDb := domain.GormDbConnections()
+	userGormRepoDb := domain.NewUserGormRepoDb(gormDb, logger)
+	postSqlxRepo := domain.NewPostSqlxRepo(sqlxDb, logger)
+
+	userService := services.NewUserService(userGormRepoDb, logger)
+	postService := services.NewPostService(postSqlxRepo, logger)
+	authService := services.NewAuthService(userGormRepoDb, logger)
+	usrHandler := userHandler.NewUserHandler(userService, logger)
+	postHandler := handlers.NewPostHandler(postService, logger)
+
+	authMiddleware := middlewares.NewAuthMiddleware(authService, logger)
 	router := mux.NewRouter()
 	api := router.PathPrefix("/api").Subrouter()
 	auth := api.PathPrefix("/auth").Subrouter()
-	email := auth.PathPrefix("/email").Subrouter()
-	auth.HandleFunc("/login", userHandler.UserLogin(gormDb)).Methods("POST")
-	auth.HandleFunc("/signup", userHandler.UserSignup(gormDb)).Methods("POST")
-	auth.HandleFunc("/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
-	auth.HandleFunc("/posts", middlewares.CheckAuth(v1.AllPostsH)).Methods("GET")
-	auth.HandleFunc("/greet", middlewares.CheckAuth(v1.Greet)).Methods("GET")
+	//email := auth.PathPrefix("/email").Subrouter()
+	auth.HandleFunc("/login", usrHandler.UserLogin).Methods("POST")
+	auth.HandleFunc("/signup", usrHandler.UserSignup).Methods("POST")
+	auth.HandleFunc("/post", authMiddleware.CheckAuth(postHandler.PostH)).Methods("GET")
+	auth.HandleFunc("/posts", authMiddleware.CheckAuth(postHandler.AllPostsH)).Methods("GET")
+	auth.HandleFunc("/greet", authMiddleware.CheckAuth(handlers.Greet)).Methods("GET")
 
-	api.HandleFunc("/post", middlewares.CheckAuth(v1.PostH)).Methods("GET")
-	api.HandleFunc("/post/comments", v1.PostComments).Methods("GET")
-	api.HandleFunc("/post/comments/store", v1.PostCommentsStore).Methods("POST")
+	api.HandleFunc("/post", authMiddleware.CheckAuth(postHandler.PostH)).Methods("GET")
+	api.HandleFunc("/post/comments", postHandler.PostComments).Methods("GET")
+	api.HandleFunc("/post/comments/store", postHandler.PostCommentsStore).Methods("POST")
 
-	email.HandleFunc("/verify", v1.VerifyEmail).Methods("POST")
+	//email.HandleFunc("/verify", handlers.VerifyEmail).Methods("POST")
 	//router.HandleFunc("/api/auth/verify-email", v1.VerifyEmail).Methods("POST")
 	//mailR := router.PathPrefix("/verify").Methods(http.MethodPost).Subrouter()
 	//mailR.HandleFunc("/mail", uh.VerifyMail)
@@ -175,12 +181,7 @@ func Start() {
 }
 func setHeaders(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//for k, v := range r.Header {
-		//	_, err := fmt.Printf("Header field %q, Value %s\n", k, v[0])
-		//	if err != nil {
-		//		fmt.Printf(err.Error())
-		//	}
-		//}
+
 		//anyone can make a CORS request (not recommended in production)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		//only allow GET, POST, and OPTIONS

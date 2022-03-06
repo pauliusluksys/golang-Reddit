@@ -6,9 +6,11 @@ import (
 
 // NewLogger returns a new logger instance
 func NewLogger() hclog.Logger {
+
 	logger := hclog.New(&hclog.LoggerOptions{
-		Name:  "user-auth-service",
-		Level: hclog.LevelFromString("DEBUG"),
+		Name:        "user-auth-service",
+		Level:       hclog.LevelFromString("DEBUG"),
+		DisableTime: true,
 	})
 
 	return logger
